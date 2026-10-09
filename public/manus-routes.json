@@ -1,0 +1,1 @@
+{"routes":[{"path":"/","title":"Bom Lar — Achadinhos para Casa"},{"path":"/produto/:slug","title":"Produto — Bom Lar"},{"path":"/checkout","title":"Checkout — Bom Lar"},{"path":"/admin","title":"Administração — Bom Lar"}]}

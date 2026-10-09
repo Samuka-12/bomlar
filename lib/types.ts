@@ -1,0 +1,24 @@
+export type ProductVariant = { name: string; value: string; priceExtra: number; available?: boolean | null };
+export type ProductReview = { author: string; body: string; rating: number; date?: string | null };
+export type Product = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  compareAt: number | null;
+  category: string;
+  tags: string[];
+  images: string[];
+  imageCount?: number;
+  stock: number | null;
+  available?: boolean | null;
+  rating: number | null;
+  reviewCount: number;
+  reviews?: ProductReview[];
+  variants: ProductVariant[];
+};
+export type StoreBanner = { id: string; title: string; subtitle: string | null; imageUrl: string | null; link: string | null };
+export type QuizOption = { text: string; points: Record<string, number> };
+export type QuizQuestion = { text: string; options: QuizOption[] };
+export type CartLine = { product: Product; quantity: number; variant?: string };

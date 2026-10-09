@@ -1,0 +1,18 @@
+{
+  "source": "https://lojamaxlarapp.com/collections/all",
+  "syncedAt": "2026-10-09T14:27:50.443Z",
+  "sourceProducts": 233,
+  "uniqueProducts": 233,
+  "productsWritten": 233,
+  "categories": 51,
+  "allSourcePhotos": 1646,
+  "uniqueSourcePhotos": 1646,
+  "localPreviewPhotos": 1646,
+  "imageFailuresOrMissing": 0,
+  "duplicatePhotoUrlsSkipped": 0,
+  "productsWithoutPhotos": 0,
+  "localWebpBytes": 93343290,
+  "duplicateIdsSkipped": 0,
+  "completed": true,
+  "note": "A prévia mantém todas as fotos acessíveis em galerias WebP locais, sem hotlink. scripts/import-catalog.ts envia as mesmas fotos para o bucket Supabase produtos quando as credenciais estiverem configuradas."
+}
