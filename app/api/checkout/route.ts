@@ -171,6 +171,7 @@ export async function POST(request: Request) {
       titulo: product.titulo,
       quantidade: line.quantity,
       valor_unitario: unitCents / 100,
+      valor_unitario_centavos: unitCents,
       variacao: variantName,
       oferta_downsell: line.downsell,
     });
@@ -189,6 +190,7 @@ export async function POST(request: Request) {
     telefone: digitsOnly(input.telefone),
     itens: { produtos: orderLines, endereco: input.endereco, forma_pagamento: 'pix' },
     total: totalCents / 100,
+    total_centavos: totalCents,
     status: 'gerando_pix',
     downsell_aceito: acceptedDownsell,
   }).select('id').single();

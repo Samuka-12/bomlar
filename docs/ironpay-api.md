@@ -20,7 +20,7 @@ Os hashes de oferta/produto informados pelo proprietário são `IRONPAY_OFFER_HA
 
 1. O checkout coleta nome, telefone, e-mail, CPF/CNPJ e endereço; a validação local impede documento inválido.
 2. O servidor verifica o catálogo Supabase, disponibilidade, variações, estoque e downsell; recalcula o total em centavos.
-3. Um pedido idempotente e um registro privado `pagamentos_pix` são criados antes da chamada IronPay.
+3. Um pedido idempotente e um registro privado `pagamentos_pix` são criados antes da chamada IronPay. O total e cada valor unitário também são guardados como inteiros em centavos (`pedidos.total_centavos` e `itens.produtos[].valor_unitario_centavos`); os campos legados em reais permanecem para compatibilidade da loja.
 4. IronPay recebe um POST por pedido com o valor total e as linhas do carrinho. A resposta é guardada no registro privado.
 5. O cliente mostra QR SVG, texto copia-e-cola, expiração quando disponível e consulta o status a cada oito segundos.
 6. O webhook não é tratado como prova: o servidor consulta a IronPay novamente e verifica o hash e o valor antes de atualizar o pedido.

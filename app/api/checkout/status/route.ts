@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     if (payment.transaction_hash && !terminalStatuses.has(status)) {
       try {
         const remote = await getIronPayTransactionStatus(payment.transaction_hash as string);
-        if (remote.amountCents === Number(payment.valor_centavos)) {
+        if (remote.transactionHash === payment.transaction_hash && remote.amountCents === Number(payment.valor_centavos)) {
           status = mapIronPayOrderStatus(remote.status);
           paidAt = remote.paidAt ?? (status === 'pago' ? new Date().toISOString() : paidAt);
           await db.from('pagamentos_pix').update({
