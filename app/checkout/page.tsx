@@ -4,7 +4,12 @@ import { CheckoutForm } from '@/components/checkout-form';
 export const dynamic = 'force-dynamic';
 
 export default async function CheckoutPage() {
-  const checkoutEnabled = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+  const checkoutEnabled = Boolean(
+    process.env.SUPABASE_URL
+    && process.env.SUPABASE_ANON_KEY
+    && process.env.SUPABASE_SERVICE_ROLE_KEY
+    && process.env.IRONPAY_API_TOKEN,
+  );
   const products = await getProducts();
   const addons = products
     .filter(product => {

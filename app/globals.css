@@ -62,3 +62,6 @@ main{min-height:70vh}.section{padding:76px 0}.section-tight{padding:52px 0}.sect
 .photo-count{position:absolute;right:12px;bottom:12px;padding:5px 8px;border:1px solid rgba(255,255,255,.19);border-radius:6px;background:rgba(10,10,10,.82);color:#fff;font:600 9px Inter,Arial,sans-serif}
 .image-counter{position:absolute;left:12px;bottom:12px;padding:7px 10px;border:1px solid rgba(255,255,255,.18);border-radius:7px;background:rgba(10,10,10,.78);color:#fff;font-size:10px}
 @media(max-width:640px){.quiz-side{background-position:center 44%}.quiz-side-copy{max-width:250px}}
+
+.pix-payment-panel{max-width:620px;margin-inline:auto}.pix-qr-wrap{width:max-content;margin:22px auto;padding:14px;background:#fff;border-radius:12px;box-shadow:0 0 0 1px #2a2a2a}.pix-copy-field{display:flex;flex-direction:column;gap:8px;margin:18px 0}.pix-copy-field textarea{width:100%;resize:vertical;background:#101010;border:1px solid #35383e;border-radius:8px;color:#e7e9ef;padding:12px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}.pix-copy-button{width:100%;min-height:48px}.pix-payment-panel .notice{margin-top:18px}
+@media(max-width:560px){.pix-qr-wrap svg{width:210px;height:210px}.pix-payment-panel{padding:18px}.pix-copy-field textarea{font-size:11px}}
