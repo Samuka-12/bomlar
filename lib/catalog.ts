@@ -2,8 +2,26 @@ import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import demo from './demo-catalog.json';
 import type { Product, ProductReview, ProductVariant, QuizQuestion, StoreBanner } from './types';
+import { cleanTitle, removeEmojis } from './text-cleaner';
 
-const fallback = demo as Product[];
+const fallback = (demo as Product[]).map(product => ({
+  ...product,
+  title: cleanTitle(product.title),
+  description: removeEmojis(product.description),
+  category: removeEmojis(product.category),
+  tags: (product.tags || []).map(removeEmojis),
+  reviews: (product.reviews || []).map(review => ({
+    ...review,
+    author: removeEmojis(review.author),
+    body: removeEmojis(review.body),
+  })),
+  variants: (product.variants || []).map(variant => ({
+    ...variant,
+    name: removeEmojis(variant.name),
+    value: removeEmojis(variant.value),
+  })),
+}));
+
 const PAGE_SIZE = 1000;
 const MAX_PRODUCTS = 5000;
 const PRODUCT_COLUMNS = 'id,titulo,slug,descricao,preco,preco_de,estoque,disponivel,avaliacao_media,total_avaliacoes,avaliacoes,tags,categoria:categorias(nome),imagens:produto_imagens(url,ordem),variacoes:produto_variacoes(nome,valor,preco_extra,disponivel)';
@@ -35,22 +53,26 @@ function client() {
 function toProduct(row: DbProduct): Product {
   return {
     id: String(row.id),
-    title: row.titulo,
+    title: cleanTitle(row.titulo),
     slug: row.slug,
-    description: row.descricao ?? '',
+    description: removeEmojis(row.descricao ?? ''),
     price: Number(row.preco),
     compareAt: row.preco_de === null ? null : Number(row.preco_de),
-    category: row.categoria?.nome ?? 'Organização',
-    tags: row.tags ?? [],
+    category: removeEmojis(row.categoria?.nome ?? 'Organização'),
+    tags: (row.tags ?? []).map(removeEmojis),
     images: (row.imagens ?? []).sort((a, b) => a.ordem - b.ordem).map(image => image.url),
     stock: row.estoque,
     available: row.disponivel ?? null,
     rating: row.avaliacao_media == null ? null : Number(row.avaliacao_media),
     reviewCount: Number(row.total_avaliacoes ?? 0),
-    reviews: row.avaliacoes ?? [],
+    reviews: (row.avaliacoes ?? []).map(review => ({
+      ...review,
+      author: removeEmojis(review.author),
+      body: removeEmojis(review.body),
+    })),
     variants: (row.variacoes ?? []).map((variant): ProductVariant => ({
-      name: variant.nome,
-      value: variant.valor,
+      name: removeEmojis(variant.nome),
+      value: removeEmojis(variant.valor),
       priceExtra: Number(variant.preco_extra ?? 0),
       available: variant.disponivel ?? null,
     })),

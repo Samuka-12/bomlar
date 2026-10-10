@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Minus, Plus, Search, ShoppingBag, X, Trash2 } from 'lucide-react';
 import type { CartLine, Product } from '@/lib/types';
 import { formatBRL } from '@/lib/format';
@@ -49,16 +50,81 @@ export function CartProvider({ children }: { children: ReactNode }) {
 }
 
 function Mark() { return <svg className="brand-mark" viewBox="0 0 32 30" fill="none" aria-hidden="true"><path d="M3 13 16 3l13 10v14H3V13Z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round"/><path d="M9 19h14M9 23h14M11 15h10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/><path d="M16 3v6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>; }
+
 export function SiteHeader() {
   const { count, setOpen } = useCart();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const isHome = pathname === '/';
+
+  const onSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const query = searchTerm.trim();
+    if (query) {
+      router.push(`/?busca=${encodeURIComponent(query)}`);
+    } else {
+      router.push('/');
+    }
+  };
+
   return <header className="site-header">
-    <div className="announcement">Frete grátis a partir de R$ 99 · Envio para todo o Brasil</div>
+    {isHome && <div className="announcement">Frete grátis a partir de R$ 99 · Envio para todo o Brasil</div>}
     <div className="wrap nav-row">
       <Link href="/" className="brand" aria-label="Bom Lar, início"><Mark/><span>Bom</span> Lar</Link>
-      <form className="searchbox" action="/" role="search"><Search size={16}/><input name="busca" placeholder="O que você procura para sua casa?" aria-label="Buscar produtos"/><button className="icon-button" type="submit" aria-label="Buscar" style={{width:28,height:28,border:0,background:'transparent'}}><Search size={15}/></button></form>
-      <div className="nav-actions"><Link className="text-link" href="/#categorias">Categorias</Link><Link className="text-link" href="/admin">Minha conta</Link><button className="cart-trigger" onClick={() => setOpen(true)} aria-label={`Abrir carrinho, ${count} itens`}><ShoppingBag size={17}/><span className="cart-label">Sacola</span><span className="cart-count">{count}</span></button></div>
+      <form className="searchbox" onSubmit={onSearchSubmit} role="search">
+        <Search size={16}/>
+        <input 
+          value={searchTerm} 
+          onChange={e => setSearchTerm(e.target.value)} 
+          placeholder="O que você procura para sua casa?" 
+          aria-label="Buscar produtos"
+        />
+        {searchTerm && (
+          <button 
+            type="button" 
+            onClick={() => { setSearchTerm(''); if (isHome) router.push('/'); }} 
+            className="icon-button" 
+            style={{ width: 22, height: 22, border: 0, background: 'transparent', color: '#999' }}
+            aria-label="Limpar busca"
+          >
+            <X size={13} />
+          </button>
+        )}
+        <button className="icon-button" type="submit" aria-label="Buscar" style={{width:28,height:28,border:0,background:'transparent'}}><Search size={15}/></button>
+      </form>
+      <div className="nav-actions">
+        <Link className="text-link" href="/#categorias">Categorias</Link>
+        <Link className="text-link" href="/admin">Minha conta</Link>
+        <button className="cart-trigger" onClick={() => setOpen(true)} aria-label={`Abrir carrinho, ${count} itens`}>
+          <ShoppingBag size={17}/>
+          <span className="cart-label">Sacola</span>
+          <span className="cart-count">{count}</span>
+        </button>
+      </div>
     </div>
-    <div className="wrap mobile-search"><form className="searchbox" action="/" role="search"><Search size={15}/><input name="busca" placeholder="Buscar achadinhos" aria-label="Buscar produtos"/></form></div>
+    <div className="wrap mobile-search">
+      <form className="searchbox" onSubmit={onSearchSubmit} role="search">
+        <Search size={15}/>
+        <input 
+          value={searchTerm} 
+          onChange={e => setSearchTerm(e.target.value)} 
+          placeholder="Buscar achadinhos para casa..." 
+          aria-label="Buscar produtos"
+        />
+        {searchTerm && (
+          <button 
+            type="button" 
+            onClick={() => { setSearchTerm(''); if (isHome) router.push('/'); }} 
+            className="icon-button" 
+            style={{ width: 22, height: 22, border: 0, background: 'transparent', color: '#999' }}
+            aria-label="Limpar busca"
+          >
+            <X size={13} />
+          </button>
+        )}
+      </form>
+    </div>
   </header>;
 }
 export function CartDrawer() {
