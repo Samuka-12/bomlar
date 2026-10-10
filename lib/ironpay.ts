@@ -78,7 +78,8 @@ function apiToken(): string {
 }
 
 function apiUrl(path: string): URL {
-  const url = new URL(`${IRONPAY_BASE_URL}${path}`);
+  const baseUrl = process.env.IRONPAY_BASE_URL?.trim() || IRONPAY_BASE_URL;
+  const url = new URL(`${baseUrl}${path}`);
   // A documentação pública da IronPay especifica api_token como query parameter.
   // Esta URL é usada apenas no servidor e nunca deve ser incluída em logs/respostas.
   url.searchParams.set('api_token', apiToken());
@@ -94,7 +95,12 @@ function postbackUrl(): string | undefined {
     const url = new URL(base.includes('://') ? base : `https://${base}`);
     if (url.protocol !== 'https:') return undefined;
     url.pathname = '/api/ironpay/webhook';
-    url.search = '';
+    const webhookToken = process.env.IRONPAY_WEBHOOK_TOKEN?.trim();
+    if (webhookToken) {
+      url.searchParams.set('token', webhookToken);
+    } else {
+      url.search = '';
+    }
     url.hash = '';
     return url.toString();
   } catch {
@@ -268,6 +274,8 @@ export function mapIronPayOrderStatus(status: string): string {
     case 'failed':
     case 'rejected':
       return 'falhou';
+    case 'waiting_payment':
+    case 'pending':
     default:
       return 'aguardando_pagamento';
   }

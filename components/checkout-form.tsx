@@ -102,13 +102,25 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
           sessionStorage.removeItem('bomlar-checkout-id');
         }
       } catch {
-        // Uma falha transitória de consulta não altera o pagamento; a próxima consulta tenta novamente.
+        // Falha transitória não altera o pagamento; a próxima consulta tenta novamente.
       }
     };
-    const timer = window.setInterval(checkStatus, 8000);
+
+    // Consulta inicial e imediata ao focar na janela / voltar do aplicativo do banco
+    checkStatus();
+    const onVisibilityChange = () => {
+      if (typeof window !== 'undefined' && window.document?.visibilityState === 'visible') checkStatus();
+    };
+    window.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', checkStatus);
+
+    // Consulta ativa e dinâmica a cada 3.5 segundos para garantir detecção rápida
+    const timer = window.setInterval(checkStatus, 3500);
     return () => {
       stopped = true;
       window.clearInterval(timer);
+      window.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', checkStatus);
     };
   }, [pixPayment?.orderId, pixPayment?.status, clear]);
 
@@ -236,18 +248,36 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
     const expired = ['cancelado', 'expirado', 'reembolsado', 'falhou'].includes(pixPayment.status);
     return <section className="panel pix-payment-panel" aria-live="polite">
       <span className="eyebrow">{paid ? 'Pagamento confirmado' : expired ? 'Pix encerrado' : 'Aguardando pagamento'}</span>
-      <h2 className="page-title" style={{ fontSize: 25, margin: '8px 0 8px' }}>{paid ? 'Pedido pago.' : expired ? 'Este Pix não está mais ativo.' : 'Pague com Pix'}</h2>
+      <h2 className="page-title" style={{ fontSize: 25, margin: '8px 0 8px' }}>{paid ? 'Pedido pago com sucesso!' : expired ? 'Este Pix não está mais ativo.' : 'Pague com Pix'}</h2>
       <p className="muted">Pedido {pixPayment.orderId} · {formatBRL(pixPayment.amountCents / 100)}</p>
       {!paid && !expired && <>
+        <div className="live-status-pulse">
+          <span className="pulse-dot" />
+          <span>Aguardando confirmação do pagamento no seu banco…</span>
+        </div>
         <div className="pix-qr-wrap">
-          <QRCodeSVG value={pixPayment.copyPaste} size={232} level="M" includeMargin bgColor="#ffffff" fgColor="#0A0A0A" aria-label="QR Code de pagamento Pix" />
+          <QRCodeSVG value={pixPayment.copyPaste} size={240} level="M" includeMargin bgColor="#ffffff" fgColor="#0A0A0A" aria-label="QR Code de pagamento Pix" />
         </div>
         {pixPayment.expiresAt && <p className="muted" style={{ textAlign: 'center', fontSize: 12 }}>Válido até {new Date(pixPayment.expiresAt).toLocaleString('pt-BR')}</p>}
-        <label className="field pix-copy-field"><span>Pix copia e cola</span><textarea readOnly value={pixPayment.copyPaste} rows={4} onFocus={event => event.currentTarget.select()} /></label>
-        <button type="button" className="btn-primary pix-copy-button" onClick={copyPixCode}>{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? 'Código copiado' : 'Copiar código Pix'}</button>
-        <p className="muted" style={{ textAlign: 'center', fontSize: 12 }}>Esta tela consulta a IronPay automaticamente a cada 8 segundos para atualizar o pagamento.</p>
+        <label className="field pix-copy-field">
+          <span style={{ fontWeight: 600 }}>Pix Copia e Cola</span>
+          <textarea readOnly value={pixPayment.copyPaste} rows={4} onFocus={event => event.currentTarget.select()} onClick={event => event.currentTarget.select()} />
+        </label>
+        <button type="button" className="btn-pix pix-copy-button" onClick={copyPixCode}>
+          {copied ? <Check size={18} /> : <Copy size={18} />}
+          {copied ? 'Código Pix copiado!' : 'Copiar código Pix (Copia e Cola)'}
+        </button>
+        <div style={{ display: 'grid', gap: 6, marginTop: 16, padding: 14, background: '#111318', border: '1px solid #202738', borderRadius: 9, fontSize: 12, color: '#a0aec0' }}>
+          <div><strong style={{ color: '#fff' }}>1.</strong> Abra o aplicativo do seu banco no celular.</div>
+          <div><strong style={{ color: '#fff' }}>2.</strong> Escolha <em>Pagar com Pix</em> e aponte a câmera para o QR Code ou use o <em>Pix Copia e Cola</em>.</div>
+          <div><strong style={{ color: '#fff' }}>3.</strong> Assim que você pagar, esta tela identificará o pagamento automaticamente em tempo real!</div>
+        </div>
+        <p className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 12 }}>Atualização em tempo real sincronizada diretamente com a IronPay.</p>
       </>}
-      {paid && <p className="notice success-notice">Pagamento confirmado pela IronPay. Obrigado pela compra!</p>}
+      {paid && <div className="notice success-notice" style={{ padding: 20, textAlign: 'center', fontSize: 14 }}>
+        <strong>✓ Pagamento confirmado pela IronPay!</strong>
+        <p style={{ margin: '8px 0 0', color: '#c7e9d2' }}>Seu pedido foi registrado e está pronto para envio. Obrigado pela sua compra na Bom Lar!</p>
+      </div>}
       {expired && <p className="notice error-notice">Não faça o pagamento deste código. Você pode iniciar um novo checkout.</p>}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 18 }}>
         {expired ? <button type="button" className="option" onClick={() => {
@@ -300,10 +330,22 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
       </div>
 
       <h2 style={{ marginTop: 27 }}>Forma de pagamento</h2>
-      <div className="payment-choice"><label><input type="radio" name="payment" checked={payment === 'pix'} onChange={() => setPayment('pix')} /> Pix</label></div>
-      <p className="muted" style={{ fontSize: 11 }}>O QR Code e o Pix copia e cola são gerados pela IronPay com os preços validados no servidor.</p>
+      <div className="payment-options-grid">
+        <label className={`payment-option-card ${payment === 'pix' ? 'active' : ''}`}>
+          <input type="radio" name="payment" checked={payment === 'pix'} onChange={() => setPayment('pix')} />
+          <div className="payment-card-content">
+            <div className="payment-card-title">
+              <span className="pix-tag">PIX</span>
+              <strong>Pix (Aprovação Imediata)</strong>
+            </div>
+            <p>QR Code dinâmico e código Copia e Cola gerados na hora com o valor exato do seu pedido via IronPay.</p>
+          </div>
+        </label>
+      </div>
       {message && <p className={`notice ${messageType === 'success' ? 'success-notice' : 'error-notice'}`} role="status">{message}</p>}
-      <button className="btn-primary checkout-submit" type="submit" disabled={loading}>{loading ? 'Gerando Pix…' : <><LockKeyhole size={15} /> Gerar Pix · {formatBRL(fullTotal)}</>}</button>
+      <button className="btn-pix checkout-submit" style={{ marginTop: 18 }} type="submit" disabled={loading}>
+        {loading ? 'Gerando Pix pela IronPay…' : <><LockKeyhole size={16} /> Pagar com Pix · {formatBRL(fullTotal)}</>}
+      </button>
 
       <div className="panel" style={{ marginTop: 13, padding: 16, background: '#101010' }}>
         <h2 style={{ fontSize: 14, marginBottom: 10 }}>Complete sua compra</h2>

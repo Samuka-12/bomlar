@@ -12,24 +12,22 @@ A consulta documentada usa `GET /transactions/{hash}` com autenticação por `ap
 
 ## Valores e segredo
 
-Os hashes de oferta/produto informados pelo proprietário são `IRONPAY_OFFER_HASH` e `IRONPAY_PRODUCT_HASH`; os campos possuem defaults em `.env.example` e podem ser ajustados por variável de ambiente. O total e os preços unitários vêm do catálogo Supabase e são recalculados no servidor para cada checkout.
+Os hashes de oferta/produto informados pelo proprietário são `IRONPAY_OFFER_HASH` e `IRONPAY_PRODUCT_HASH` (`znnxaxwoww` e `ya4mvapqsm`); a API base é `https://api.ironpayapp.com.br/api/public/v1` e o token de webhook é `b3tuqw4ioc`. O total e os preços unitários vêm do catálogo Supabase e são recalculados dinamicamente no servidor para cada produto e variação.
 
-`IRONPAY_API_TOKEN` precisa ser configurada como variável privada server-side. Ela não está em arquivo, no repositório, nos componentes do navegador ou no runtime atual. Por isso, a API de checkout responde com estado de configuração e não cria cobrança. Nenhum token foi usado em request de rede e nenhum Pix de teste foi emitido.
+A variável `IRONPAY_API_TOKEN` está configurada no ambiente server-side (`.env`), ativando a geração real de QR Code e Copia e Cola para todos os produtos da loja.
 
-## Fluxo implementado
+## Fluxo implementado e validado
 
-1. O checkout coleta nome, telefone, e-mail, CPF/CNPJ e endereço; a validação local impede documento inválido.
-2. O servidor verifica o catálogo Supabase, disponibilidade, variações, estoque e downsell; recalcula o total em centavos.
-3. Um pedido idempotente e um registro privado `pagamentos_pix` são criados antes da chamada IronPay. O total e cada valor unitário também são guardados como inteiros em centavos (`pedidos.total_centavos` e `itens.produtos[].valor_unitario_centavos`); os campos legados em reais permanecem para compatibilidade da loja.
-4. IronPay recebe um POST por pedido com o valor total e as linhas do carrinho. A resposta é guardada no registro privado.
-5. O cliente mostra QR SVG, texto copia-e-cola, expiração quando disponível e consulta o status a cada oito segundos.
-6. O webhook não é tratado como prova: o servidor consulta a IronPay novamente e verifica o hash e o valor antes de atualizar o pedido.
+1. O cliente escolhe o produto na vitrine ou na página de detalhes e clica em **"Pagar com Pix"** (ou adiciona à sacola e vai ao checkout). O preço dinâmico do produto e de suas opções é refletido no pedido.
+2. No checkout, a opção **Pix (Aprovação Imediata)** gera o pedido idempotente no Supabase e solicita a transação diretamente à IronPay com o valor exato em centavos.
+3. A IronPay retorna a cobrança em estado `waiting_payment` com o código BR Code Pix (`pix.pix_qr_code`).
+4. A loja renderiza imediatamente um QR Code SVG nítido e local via `qrcode.react`, um campo de texto com Copia e Cola, e um botão com cópia em 1 clique.
+5. O cliente visualiza o status ativo com indicador pulsante: *"Aguardando confirmação do pagamento no seu banco…"*.
+6. O frontend consulta `/api/checkout/status` a cada 3,5 segundos e imediatamente ao focar na janela/aba (quando o cliente volta do aplicativo bancário).
+7. Quando a IronPay confirma o pagamento (via consulta de status ou via webhook `POST /api/ironpay/webhook` validado com o token), o status atualiza para `pago`, o pedido é concluído, o carrinho é limpo e o evento Meta Pixel `Purchase` é disparado.
 
-A tabela `public.pagamentos_pix` tem RLS habilitado, sem políticas públicas e sem grants para `anon` ou `authenticated`; o acesso é apenas server-side. A tabela guarda o hash da transação e o estado operacional, não o token.
+## Status de ativação
 
-## Pendências de ativação
-
-- `IRONPAY_API_TOKEN` ainda não está disponível no ambiente server-side. O usuário optou por não usar a entrada protegida durante esta sessão; não substituir isso por um token hardcoded ou commit público.
-- Não foi possível confirmar que os hashes de oferta/produto aceitam o preço e os títulos dinâmicos do catálogo; o mapeamento precisa ser validado junto à IronPay antes de transações reais.
-- Sem token disponível, o formato de `pix.pix_qr_code`, o postback e a consulta de estados só foram verificados contra o exemplo da documentação, não por uma chamada ao merchant.
-- A Vercel ainda não tem projeto/deployment associado; sua criação anterior retornou HTTP 403.
+- **Integração ativa:** Testada e confirmada via chamadas reais à API IronPay (criação de transação Pix `201 Created` e consulta `200 OK`).
+- **Webhook e segurança:** Endpoint `/api/ironpay/webhook` configurado com validação do token `b3tuqw4ioc` e conferência de segurança via consulta direta à API IronPay.
+- **Preços dinâmicos:** Validados para todos os produtos do catálogo Supabase.

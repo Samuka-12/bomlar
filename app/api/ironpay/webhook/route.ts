@@ -8,10 +8,30 @@ import {
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  const url = new URL(request.url);
   const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-  const transactionHash = typeof body?.transaction_hash === 'string'
-    ? body.transaction_hash.trim()
-    : typeof body?.hash === 'string' ? body.hash.trim() : '';
+
+  const expectedToken = process.env.IRONPAY_WEBHOOK_TOKEN?.trim();
+  if (expectedToken) {
+    const queryToken = url.searchParams.get('token');
+    const headerToken = request.headers.get('x-webhook-token') || request.headers.get('token') || request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+    const bodyToken = typeof body?.token === 'string' ? body.token : typeof body?.webhook_token === 'string' ? body.webhook_token : null;
+    const receivedToken = queryToken || headerToken || bodyToken;
+    if (receivedToken && receivedToken !== expectedToken) {
+      return NextResponse.json({ received: false, error: 'Token inválido' }, { status: 401 });
+    }
+  }
+
+  const dataObj = (body?.data && typeof body.data === 'object' && !Array.isArray(body.data))
+    ? body.data as Record<string, unknown>
+    : body;
+
+  const transactionHash = typeof dataObj?.transaction_hash === 'string'
+    ? dataObj.transaction_hash.trim()
+    : typeof dataObj?.hash === 'string'
+      ? dataObj.hash.trim()
+      : url.searchParams.get('hash')?.trim() || url.searchParams.get('transaction_hash')?.trim() || '';
+
   if (!/^[A-Za-z0-9_-]{3,160}$/.test(transactionHash)) {
     return NextResponse.json({ received: false }, { status: 400 });
   }
