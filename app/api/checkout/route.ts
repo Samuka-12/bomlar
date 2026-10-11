@@ -8,6 +8,7 @@ import {
   isIronPayConfigured,
   mapIronPayOrderStatus,
 } from '@/lib/ironpay';
+import { processCreditCardPayment } from '@/lib/credit-card';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,16 @@ const itemSchema = z.object({
   variant: z.string().max(120).optional(),
   downsell: z.boolean().optional().default(false),
 });
+
+const creditCardSchema = z.object({
+  cardNumber: z.string().optional(),
+  cardHolder: z.string().optional(),
+  expiry: z.string().optional(),
+  cvv: z.string().optional(),
+  installments: z.number().int().min(1).max(12).optional(),
+  installmentValue: z.number().optional(),
+}).optional();
+
 const schema = z.object({
   checkoutId: z.string().uuid(),
   cliente_nome: z.string().min(2).max(180),
@@ -32,7 +43,8 @@ const schema = z.object({
     numero: z.string().min(1).max(40),
     complemento: z.string().max(120),
   }),
-  payment: z.literal('pix'),
+  payment: z.enum(['pix', 'credit_card']),
+  creditCard: creditCardSchema,
   items: z.array(itemSchema).min(1).max(30),
   downsellAccepted: z.boolean().default(false),
 });
@@ -57,7 +69,11 @@ function pixResponse(orderId: string, totalCents: number, payment: Record<string
 export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail('Confira os dados do pedido, CPF/CNPJ e CEP.', 400);
-  if (!isIronPayConfigured()) return fail('Pix ainda não está ativado no servidor. Nenhuma cobrança foi criada.', 503);
+  const input = parsed.data;
+
+  if (input.payment === 'pix' && !isIronPayConfigured()) {
+    return fail('Pix ainda não está ativado no servidor. Nenhuma cobrança foi criada.', 503);
+  }
 
   let db;
   try {
@@ -66,13 +82,25 @@ export async function POST(request: Request) {
     return fail('O registro seguro de pedidos ainda não está configurado. Nenhuma cobrança foi criada.', 503);
   }
 
-  const input = parsed.data;
   const { data: previousOrder, error: previousError } = await db.from('pedidos')
     .select('id,total,status,checkout_id')
     .eq('checkout_id', input.checkoutId)
     .maybeSingle();
-  if (previousError) return fail('O banco ainda não está pronto para registrar cobranças Pix.', 503);
+  if (previousError) return fail('O banco ainda não está pronto para registrar cobranças.', 503);
   if (previousOrder) {
+    if (input.payment === 'credit_card') {
+      return NextResponse.json({
+        saved: true,
+        orderId: String(previousOrder.id),
+        paymentMethod: 'credit_card',
+        status: previousOrder.status,
+        total: Number(previousOrder.total),
+        installments: input.creditCard?.installments || 1,
+        installmentValue: Number(previousOrder.total) / (input.creditCard?.installments || 1),
+        cardLast4: (input.creditCard?.cardNumber || '').slice(-4) || '****',
+        message: 'Pedido já registrado com sucesso!',
+      }, { headers: { 'Cache-Control': 'no-store, private' } });
+    }
     const { data: previousPayment, error: paymentError } = await db.from('pagamentos_pix')
       .select('status,valor_centavos,pix_copia_cola,pix_qr_url,pix_expira_em')
       .eq('pedido_id', previousOrder.id)
@@ -181,7 +209,66 @@ export async function POST(request: Request) {
       quantity: line.quantity,
     });
   }
-  if (!Number.isSafeInteger(totalCents) || totalCents <= 0) return fail('O total do pedido não é válido para Pix.', 400);
+  if (!Number.isSafeInteger(totalCents) || totalCents <= 0) return fail('O total do pedido não é válido.', 400);
+
+  if (input.payment === 'credit_card') {
+    const installments = input.creditCard?.installments || 1;
+    const cleanCard = (input.creditCard?.cardNumber || '').replace(/\D/g, '');
+    const last4 = cleanCard ? cleanCard.slice(-4) : '****';
+    const [expMonth = '12', expYear = '30'] = (input.creditCard?.expiry || '').split('/');
+
+    const cardResult = await processCreditCardPayment({
+      orderId: input.checkoutId,
+      amountCents: totalCents,
+      installments,
+      card: {
+        number: cleanCard,
+        holderName: input.creditCard?.cardHolder || input.cliente_nome,
+        expirationMonth: expMonth,
+        expirationYear: expYear,
+        cvv: input.creditCard?.cvv || '',
+      },
+      customer: {
+        name: input.cliente_nome,
+        email: input.email,
+        phone: digitsOnly(input.telefone),
+        document: digitsOnly(input.document),
+      },
+    });
+
+    const { data: order, error: insertError } = await db.from('pedidos').insert({
+      checkout_id: input.checkoutId,
+      cliente_nome: input.cliente_nome,
+      email: input.email,
+      telefone: digitsOnly(input.telefone),
+      itens: {
+        produtos: orderLines,
+        endereco: input.endereco,
+        forma_pagamento: 'cartao_credito',
+        parcelas: installments,
+        valor_parcela: Number(((totalCents / 100) / installments).toFixed(2)),
+        ultimos_digitos: last4,
+      },
+      total: totalCents / 100,
+      total_centavos: totalCents,
+      status: cardResult.status === 'aprovado' ? 'pago' : 'aguardando_pagamento',
+      downsell_aceito: acceptedDownsell,
+    }).select('id').single();
+
+    if (insertError || !order) return fail('Não foi possível registrar o pedido no cartão de crédito.', 503);
+
+    return NextResponse.json({
+      saved: true,
+      orderId: String(order.id),
+      paymentMethod: 'credit_card',
+      status: cardResult.status === 'aprovado' ? 'pago' : 'aguardando_pagamento',
+      total: totalCents / 100,
+      installments,
+      installmentValue: Number(((totalCents / 100) / installments).toFixed(2)),
+      cardLast4: last4,
+      message: cardResult.message,
+    }, { headers: { 'Cache-Control': 'no-store, private' } });
+  }
 
   const { data: order, error: insertError } = await db.from('pedidos').insert({
     checkout_id: input.checkoutId,

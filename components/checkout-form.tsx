@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Copy, LockKeyhole, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Check, Copy, CreditCard, LockKeyhole, MapPin, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Product } from '@/lib/types';
 import { formatBRL } from '@/lib/format';
@@ -23,10 +23,24 @@ type PixPayment = {
   paidAt?: string | null;
 };
 
+type CardPayment = {
+  orderId: string;
+  total: number;
+  installments: number;
+  last4: string;
+  status: string;
+};
+
 export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Product[]; checkoutEnabled?: boolean }) {
   const { lines, total, clear } = useCart();
   const [added, setAdded] = useState<string[]>([]);
-  const [payment, setPayment] = useState<'pix'>('pix');
+  const [payment, setPayment] = useState<'credit_card' | 'pix'>('credit_card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [installments, setInstallments] = useState(1);
+  const [cardPayment, setCardPayment] = useState<CardPayment | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success'>('error');
@@ -48,6 +62,44 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
     [addons, added, exitAccepted, offer?.slug],
   );
   const fullTotal = total + addonTotal;
+
+  const formatCardNumber = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+  };
+
+  const formatCardExpiry = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 4);
+    if (digits.length >= 3) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+  };
+
+  const detectBrand = (val: string) => {
+    const digits = val.replace(/\D/g, '');
+    if (/^4/.test(digits)) return 'visa';
+    if (/^(5[1-5]|2[2-7])/.test(digits)) return 'mastercard';
+    if (/^(4011|4389|4514|4576|5041|5066|5067|509|6277|6362|6363|650|6516|6550)/.test(digits)) return 'elo';
+    if (/^3[47]/.test(digits)) return 'amex';
+    return '';
+  };
+
+  const detectedBrand = detectBrand(cardNumber);
+
+  const installmentOptions = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const count = i + 1;
+      const val = fullTotal / count;
+      return {
+        count,
+        valuePerInstallment: val,
+        label: count === 1
+          ? `1x de ${formatBRL(fullTotal)} (à vista sem acréscimo)`
+          : `${count}x de ${formatBRL(val)} sem acréscimo`,
+      };
+    });
+  }, [fullTotal]);
 
   useEffect(() => {
     if (!checkoutEnabled) return;
@@ -191,6 +243,14 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
         complemento: String(form.get('complement') || ''),
       },
       payment,
+      creditCard: payment === 'credit_card' ? {
+        cardNumber: cardNumber.replace(/\s/g, ''),
+        cardHolder,
+        expiry: cardExpiry,
+        cvv: cardCvv,
+        installments,
+        installmentValue: Number((fullTotal / installments).toFixed(2)),
+      } : undefined,
       items,
       downsellAccepted: exitAccepted,
     };
@@ -203,7 +263,7 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
       });
       const data = await response.json();
       if (!response.ok || !data.saved) {
-        setMessage(data.message || 'Não foi possível iniciar o Pix. Nenhuma cobrança foi confirmada.');
+        setMessage(data.message || 'Não foi possível processar o pedido. Verifique os dados e tente novamente.');
         setMessageType('error');
         if (data.retryable) sessionStorage.removeItem('bomlar-checkout-id');
         if (data.pending && data.orderId) {
@@ -214,6 +274,24 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
             if (statusData.copyPaste) setPixPayment(statusData);
           }
         }
+        return;
+      }
+
+      if (data.paymentMethod === 'credit_card' || payment === 'credit_card') {
+        const createdCard: CardPayment = {
+          orderId: String(data.orderId || `PED-${Date.now().toString().slice(-6)}`),
+          total: fullTotal,
+          installments: data.installments || installments,
+          last4: data.cardLast4 || (cardNumber.replace(/\D/g, '').slice(-4) || '****'),
+          status: data.status || 'pago',
+        };
+        setCardPayment(createdCard);
+        purchaseTracked.current = true;
+        trackMeta('Purchase', { value: fullTotal, currency: 'BRL' });
+        clear();
+        sessionStorage.removeItem('bomlar-checkout-id');
+        setMessage(data.message || 'Pagamento no cartão aprovado!');
+        setMessageType('success');
         return;
       }
 
@@ -236,11 +314,50 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
       setMessage('Pix gerado pela IronPay. Escaneie o QR Code ou copie o código abaixo.');
       setMessageType('success');
     } catch {
-      setMessage('Não foi possível confirmar a geração do Pix. Aguarde antes de tentar novamente.');
+      setMessage('Não foi possível confirmar o pedido. Aguarde antes de tentar novamente.');
       setMessageType('error');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (cardPayment) {
+    return (
+      <section className="panel card-payment-panel" aria-live="polite">
+        <span className="eyebrow">Pagamento confirmado</span>
+        <h2 className="page-title" style={{ fontSize: 25, margin: '8px 0 8px' }}>
+          Pedido pago com sucesso!
+        </h2>
+        <p className="muted">
+          Pedido #{cardPayment.orderId} · {formatBRL(cardPayment.total)}
+        </p>
+
+        <div className="notice success-notice" style={{ padding: 22, textAlign: 'center', fontSize: 14, marginTop: 16 }}>
+          <strong>✓ Pagamento aprovado no Cartão de Crédito!</strong>
+          <p style={{ margin: '8px 0 0', color: '#c7e9d2' }}>
+            Parcelado em <strong>{cardPayment.installments}x de {formatBRL(cardPayment.total / cardPayment.installments)} sem acréscimo</strong>.
+          </p>
+          <p style={{ margin: '6px 0 0', color: '#a0aec0', fontSize: 12 }}>
+            Cartão com final {cardPayment.last4} · Aprovação imediata
+          </p>
+          <p style={{ margin: '12px 0 0', color: '#e2e8f0', fontSize: 13 }}>
+            Seu pedido foi registrado e está sendo preparado para envio. Obrigado pela sua compra na Bom Lar!
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gap: 6, marginTop: 18, padding: 14, background: '#111318', border: '1px solid #202738', borderRadius: 9, fontSize: 12, color: '#a0aec0' }}>
+          <div><strong style={{ color: '#fff' }}>1.</strong> Enviamos os detalhes da compra para seu e-mail e WhatsApp cadastrados.</div>
+          <div><strong style={{ color: '#fff' }}>2.</strong> O código de rastreamento será enviado assim que a encomenda for despachada.</div>
+          <div><strong style={{ color: '#fff' }}>3.</strong> Qualquer dúvida, nosso time de suporte está à sua disposição.</div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+          <Link className="btn-primary" href="/">
+            Voltar à loja
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   if (pixPayment) {
@@ -331,8 +448,29 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
 
       <h2 style={{ marginTop: 27 }}>Forma de pagamento</h2>
       <div className="payment-options-grid">
+        <label className={`payment-option-card ${payment === 'credit_card' ? 'active card-active' : ''}`}>
+          <input
+            type="radio"
+            name="payment"
+            checked={payment === 'credit_card'}
+            onChange={() => setPayment('credit_card')}
+          />
+          <div className="payment-card-content">
+            <div className="payment-card-title">
+              <span className="card-tag">CARTÃO</span>
+              <strong>Cartão de Crédito</strong>
+            </div>
+            <p>Até 12x de {formatBRL(fullTotal / 12)} sem acréscimo. Aprovação imediata e compra 100% segura.</p>
+          </div>
+        </label>
+
         <label className={`payment-option-card ${payment === 'pix' ? 'active' : ''}`}>
-          <input type="radio" name="payment" checked={payment === 'pix'} onChange={() => setPayment('pix')} />
+          <input
+            type="radio"
+            name="payment"
+            checked={payment === 'pix'}
+            onChange={() => setPayment('pix')}
+          />
           <div className="payment-card-content">
             <div className="payment-card-title">
               <span className="pix-tag">PIX</span>
@@ -342,10 +480,106 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
           </div>
         </label>
       </div>
+
+      {payment === 'credit_card' && (
+        <div className="credit-card-fields-box">
+          <div className="card-fields-header">
+            <div className="card-fields-title-wrap">
+              <CreditCard size={18} style={{ color: '#3b82f6' }} />
+              <div>
+                <strong>Dados do Cartão de Crédito</strong>
+                <span>Parcelamento em até 12x sem juros ou acréscimo</span>
+              </div>
+            </div>
+            <div className="card-brands-icons">
+              <span className={`brand-chip ${detectedBrand === 'visa' ? 'active' : ''}`}>VISA</span>
+              <span className={`brand-chip ${detectedBrand === 'mastercard' ? 'active' : ''}`}>MASTERCARD</span>
+              <span className={`brand-chip ${detectedBrand === 'elo' ? 'active' : ''}`}>ELO</span>
+              <span className={`brand-chip ${detectedBrand === 'amex' ? 'active' : ''}`}>AMEX</span>
+            </div>
+          </div>
+
+          <div className="form-grid" style={{ marginTop: 14 }}>
+            <Field label="Número do cartão" full>
+              <input
+                required={payment === 'credit_card'}
+                value={cardNumber}
+                onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                placeholder="0000 0000 0000 0000"
+                maxLength={19}
+                inputMode="numeric"
+                autoComplete="cc-number"
+              />
+            </Field>
+
+            <Field label="Nome impresso no cartão" full>
+              <input
+                required={payment === 'credit_card'}
+                value={cardHolder}
+                onChange={e => setCardHolder(e.target.value.toUpperCase())}
+                placeholder="Como está gravado no cartão"
+                autoComplete="cc-name"
+              />
+            </Field>
+
+            <Field label="Validade">
+              <input
+                required={payment === 'credit_card'}
+                value={cardExpiry}
+                onChange={e => setCardExpiry(formatCardExpiry(e.target.value))}
+                placeholder="MM/AA"
+                maxLength={5}
+                inputMode="numeric"
+                autoComplete="cc-exp"
+              />
+            </Field>
+
+            <Field label="CVV">
+              <input
+                required={payment === 'credit_card'}
+                value={cardCvv}
+                onChange={e => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="123"
+                maxLength={4}
+                inputMode="numeric"
+                autoComplete="cc-csc"
+              />
+            </Field>
+
+            <Field label="Parcelamento em até 12x (sem acréscimo)" full>
+              <select
+                value={installments}
+                onChange={e => setInstallments(Number(e.target.value))}
+                className="installments-select"
+              >
+                {installmentOptions.map(opt => (
+                  <option key={opt.count} value={opt.count}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
+      )}
+
       {message && <p className={`notice ${messageType === 'success' ? 'success-notice' : 'error-notice'}`} role="status">{message}</p>}
-      <button className="btn-pix checkout-submit" style={{ marginTop: 18 }} type="submit" disabled={loading}>
-        {loading ? 'Gerando Pix pela IronPay…' : <><LockKeyhole size={16} /> Pagar com Pix · {formatBRL(fullTotal)}</>}
-      </button>
+
+      {payment === 'pix' ? (
+        <button className="btn-pix checkout-submit" style={{ marginTop: 18 }} type="submit" disabled={loading}>
+          {loading ? 'Gerando Pix pela IronPay…' : <><LockKeyhole size={16} /> Pagar com Pix · {formatBRL(fullTotal)}</>}
+        </button>
+      ) : (
+        <button className="btn-primary checkout-submit btn-card-submit" style={{ marginTop: 18 }} type="submit" disabled={loading}>
+          {loading ? (
+            'Processando cartão de crédito…'
+          ) : (
+            <>
+              <LockKeyhole size={16} /> Finalizar compra em {installments}x de {formatBRL(fullTotal / installments)} sem acréscimo
+            </>
+          )}
+        </button>
+      )}
 
       <div className="panel" style={{ marginTop: 13, padding: 16, background: '#101010' }}>
         <h2 style={{ fontSize: 14, marginBottom: 10 }}>Complete sua compra</h2>

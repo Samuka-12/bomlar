@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
+  CreditCard,
   Minus,
   Plus,
   QrCode,
@@ -184,7 +185,7 @@ export function ProductDetail({
                 {discount > 0 && <span className="product-save">-{discount}%</span>}
               </div>
               <div className="product-installments">
-                ou até 12x de {formatBRL(unitPrice / 12)} sem juros no cartão
+                ou até 12x de {formatBRL(unitPrice / 12)} sem acréscimo no cartão
               </div>
             </div>
 
@@ -275,6 +276,10 @@ export function ProductDetail({
 
             {/* Benefícios Rápidos */}
             <div className="detail-perks">
+              <div>
+                <CreditCard size={17} style={{ color: '#3b82f6' }} />
+                <span>Cartão em até 12x sem acréscimo</span>
+              </div>
               <div>
                 <QrCode size={17} style={{ color: '#00bfa5' }} />
                 <span>QR Code dinâmico e Pix Copia e Cola gerados na hora</span>

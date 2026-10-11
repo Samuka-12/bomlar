@@ -2143,6 +2143,20 @@ main {
   white-space: nowrap;
 }
 
+.payment-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+  .payment-options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .payment-option-card {
   display: flex;
   align-items: flex-start;
@@ -2152,13 +2166,120 @@ main {
   padding: 14px;
   background: #151821;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .payment-option-card.active {
   border-color: #00bfa5;
   background: rgba(0, 191, 165, 0.06);
   box-shadow: 0 0 0 1px #00bfa5;
+}
+
+.payment-option-card.card-active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.card-tag {
+  background: #2563eb;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.credit-card-fields-box {
+  background: #13161f;
+  border: 1px solid #283143;
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+}
+
+.card-fields-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #232a3a;
+  flex-wrap: wrap;
+}
+
+.card-fields-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-fields-title-wrap strong {
+  display: block;
+  font-size: 13.5px;
+  color: #fff;
+}
+
+.card-fields-title-wrap span {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-brands-icons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.brand-chip {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #1e2433;
+  color: #94a3b8;
+  border: 1px solid #333d54;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.brand-chip.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.installments-select {
+  width: 100%;
+  background: #181c26;
+  border: 1px solid #303748;
+  color: #f3f4f6;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.installments-select:focus {
+  border-color: #3b82f6;
+}
+
+.btn-card-submit {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: #fff !important;
+}
+
+.btn-card-submit:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+}
+
+.card-payment-panel {
+  max-width: 620px;
+  margin-inline: auto;
 }
 
 .payment-card-content {
