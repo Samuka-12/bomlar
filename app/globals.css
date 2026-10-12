@@ -256,6 +256,30 @@ main {
   color: white;
 }
 
+.btn-all-products {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: max-content;
+}
+
+.btn-all-products:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 /* Hero & Quiz */
 .hero {
   padding: 34px 0 40px;
@@ -1402,6 +1426,15 @@ main {
   background: rgba(10, 10, 10, 0.78);
   color: #fff;
   font-size: 10px;
+}
+
+/* Posicionamento responsivo das avaliações (Desktop vs Mobile) */
+.desktop-reviews-only {
+  display: block;
+}
+
+.mobile-reviews-only {
+  display: none;
 }
 
 /* Avaliações na coluna esquerda (embaixo das fotos do produto) */
@@ -2583,6 +2616,17 @@ main {
   }
   .footer-col:last-child {
     display: none;
+  }
+  .product-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .desktop-reviews-only {
+    display: none !important;
+  }
+  .mobile-reviews-only {
+    display: block !important;
+    margin-top: 24px;
   }
 }
 

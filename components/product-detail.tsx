@@ -90,7 +90,20 @@ export function ProductDetail({
     for (let i = 0; i < quantity; i++) {
       add(product, variant || undefined);
     }
-    router.push('/checkout');
+    router.push('/checkout?payment=pix');
+  };
+
+  const buyWithCredit = () => {
+    trackMeta('AddToCart', {
+      content_type: 'product',
+      content_ids: [product.id],
+      value: totalPrice,
+      currency: 'BRL',
+    });
+    for (let i = 0; i < quantity; i++) {
+      add(product, variant || undefined);
+    }
+    router.push('/checkout?payment=credit_card');
   };
 
   const handleAddComplementary = (comp: Product) => {
@@ -159,8 +172,10 @@ export function ProductDetail({
               </div>
             )}
 
-            {/* Avaliações Verificadas sob as fotos do produto */}
-            <ProductSideReviews product={product} />
+            {/* Avaliações Verificadas sob as fotos do produto (Apenas Desktop) */}
+            <div className="desktop-reviews-only">
+              <ProductSideReviews product={product} />
+            </div>
           </div>
 
           {/* Coluna 2: Informações de Compra e Detalhes */}
@@ -265,12 +280,12 @@ export function ProductDetail({
               </button>
 
               <button
-                className="btn-primary buy-button btn-secondary-action"
+                className="btn-primary buy-button btn-secondary-action btn-credit-action"
                 disabled={unavailable}
-                onClick={buy}
+                onClick={buyWithCredit}
               >
-                <ShoppingBag size={17} />
-                {unavailable ? 'Indisponível' : 'Adicionar à sacola'}
+                <CreditCard size={17} />
+                {unavailable ? 'Indisponível' : 'Comprar agora no crédito'}
               </button>
             </div>
 
@@ -292,6 +307,11 @@ export function ProductDetail({
                 <ShieldCheck size={17} />
                 <span>Compra protegida com notificação e rastreio</span>
               </div>
+            </div>
+
+            {/* Avaliações Verificadas no celular (abaixo do preço e botões de compra) */}
+            <div className="mobile-reviews-only">
+              <ProductSideReviews product={product} />
             </div>
 
             {/* Ofertas complementares dinâmicas (Cross-sell inteligente) */}
@@ -355,8 +375,8 @@ export function ProductDetail({
 
             {/* Descrição Limpa, Moderna e Sem Emojis */}
             <div className="product-description-container">
-              <details open className="detail-accordion">
-                <summary>Sobre este produto</summary>
+              <details className="detail-accordion">
+                <summary>Ver mais sobre este produto</summary>
                 <div className="accordion-content">
                   {formattedDesc.intro && (
                     <p className="desc-intro">{formattedDesc.intro}</p>

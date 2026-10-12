@@ -94,7 +94,7 @@ export function SiteHeader() {
         <button className="icon-button" type="submit" aria-label="Buscar" style={{width:28,height:28,border:0,background:'transparent'}}><Search size={15}/></button>
       </form>
       <div className="nav-actions">
-        <Link className="text-link" href="/#categorias">Categorias</Link>
+        <Link className="text-link" href="/#produtos">Produtos</Link>
         <Link className="text-link" href="/admin">Minha conta</Link>
         <button className="cart-trigger" onClick={() => setOpen(true)} aria-label={`Abrir carrinho, ${count} itens`}>
           <ShoppingBag size={17}/>
@@ -143,7 +143,7 @@ export function CartDrawer() {
 export function SiteFooter() {
   return <footer className="site-footer"><div className="wrap"><div className="footer-grid">
     <div className="footer-brand"><Link href="/" className="brand"><Mark/><span>Bom</span> Lar</Link><p>Achadinhos práticos para uma casa mais leve, bonita e organizada.</p><strong style={{font:'600 11px Sora',color:'#c7c9cf'}}>Um bom lar começa com organização.</strong></div>
-    <div className="footer-col"><h3>Explore</h3><Link href="/#categorias">Categorias</Link><Link href="/#ofertas">Ofertas do dia</Link><Link href="/#produtos">Todos os produtos</Link><Link href="/#sobre">Sobre a Bom Lar</Link></div>
+    <div className="footer-col"><h3>Explore</h3><Link href="/#ofertas">Ofertas do dia</Link><Link href="/#produtos">Todos os produtos</Link><Link href="/#sobre">Sobre a Bom Lar</Link></div>
     <div className="footer-col"><h3>Atendimento</h3><p>Ajuda com pedidos</p><p>Envio para todo o Brasil</p><p>Segunda a sábado</p></div>
     <div className="footer-col"><h3>Compra segura</h3><p>Pagamento protegido</p><p>Política de trocas</p><p>Privacidade e dados</p></div>
   </div><div className="footer-bottom"><span>© {new Date().getFullYear()} Bom Lar. Todos os direitos reservados.</span><span>Feito para deixar a rotina mais leve.</span></div></div></footer>;

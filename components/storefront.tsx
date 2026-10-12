@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  ArrowDown,
   ArrowRight,
   Check,
   Plus,
@@ -418,7 +419,7 @@ export function Storefront({
               <p>
                 Não encontramos achadinhos correspondentes a{' '}
                 <strong>&ldquo;{search.trim()}&rdquo;</strong>.
-                Experimente palavras mais genéricas ou veja os itens por ambiente.
+                Experimente palavras mais genéricas ou veja as opções disponíveis abaixo.
               </p>
               <div className="empty-actions">
                 <button
@@ -431,7 +432,7 @@ export function Storefront({
               </div>
               <div className="empty-suggestions">
                 <span className="muted" style={{ fontSize: 11 }}>
-                  Sugestões de ambientes populares:
+                  Sugestões de categorias populares:
                 </span>
                 <div className="category-suggestion-chips">
                   {categories
@@ -631,8 +632,9 @@ export function Storefront({
                 </div>
               </>
             )}
-            <a href="#produtos" className="link-blue" style={{ fontSize: 10, marginTop: 17, width: 'max-content' }}>
+            <a href="#produtos" className="btn-all-products">
               Prefiro ver todos os produtos
+              <ArrowDown size={14} />
             </a>
           </div>
           <div className="quiz-side">
@@ -666,40 +668,6 @@ export function Storefront({
           </div>
         </section>
       )}
-
-      {/* Categorias por ambiente */}
-      <section className="section-tight" id="categorias">
-        <div className="wrap">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Encontre por ambiente</span>
-              <h2>Comece pelo seu canto</h2>
-            </div>
-            <p>Organização que acompanha a vida real, da cozinha à lavanderia.</p>
-          </div>
-          <div className="category-row">
-            {categories
-              .filter(name => name !== 'Todos')
-              .slice(0, 5)
-              .map((name, i) => (
-                <button
-                  key={name}
-                  className="category-tile"
-                  onClick={() => {
-                    setCategory(name);
-                    document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                  <span className="category-number">0{i + 1} / BOM LAR</span>
-                  <strong>{name}</strong>
-                  <span>
-                    Ver achadinhos <ArrowRight size={12} />
-                  </span>
-                </button>
-              ))}
-          </div>
-        </div>
-      </section>
 
       {/* Faixa de Oferta do dia */}
       <section className="offer-band" id="ofertas">

@@ -9,8 +9,6 @@ import { formatBRL } from '@/lib/format';
 import { useCart } from '@/components/cart';
 import { trackMeta } from '@/components/meta-pixel';
 
-const addonUnitPrice = (product: Product) =>
-  product.price + (product.variants.find(variant => variant.available !== false)?.priceExtra ?? 0);
 const terminalStatuses = new Set(['pago', 'cancelado', 'expirado', 'reembolsado', 'falhou']);
 
 type PixPayment = {
@@ -31,9 +29,8 @@ type CardPayment = {
   status: string;
 };
 
-export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Product[]; checkoutEnabled?: boolean }) {
+export function CheckoutForm({ addons = [], checkoutEnabled = false }: { addons?: Product[]; checkoutEnabled?: boolean }) {
   const { lines, total, clear } = useCart();
-  const [added, setAdded] = useState<string[]>([]);
   const [payment, setPayment] = useState<'credit_card' | 'pix'>('credit_card');
   const [cardNumber, setCardNumber] = useState('');
   const [cardHolder, setCardHolder] = useState('');
@@ -47,21 +44,22 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
   const [cep, setCep] = useState('');
   const [document, setDocument] = useState('');
   const [address, setAddress] = useState({ street: '', neighborhood: '', city: '', state: '' });
-  const [exitOpen, setExitOpen] = useState(false);
-  const [exitChecked, setExitChecked] = useState(false);
-  const [exitAccepted, setExitAccepted] = useState(false);
   const [pixPayment, setPixPayment] = useState<PixPayment | null>(null);
   const [copied, setCopied] = useState(false);
   const purchaseTracked = useRef(false);
-  const offer = addons[0];
-  const addonTotal = useMemo(
-    () => addons.filter(addon => added.includes(addon.slug)).reduce(
-      (sum, addon) => sum + addonUnitPrice(addon) * (exitAccepted && addon.slug === offer?.slug ? 0.9 : 1),
-      0,
-    ),
-    [addons, added, exitAccepted, offer?.slug],
-  );
-  const fullTotal = total + addonTotal;
+  const fullTotal = total;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get('payment');
+      if (p === 'pix') {
+        setPayment('pix');
+      } else if (p === 'credit_card') {
+        setPayment('credit_card');
+      }
+    }
+  }, []);
 
   const formatCardNumber = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 16);
@@ -100,31 +98,6 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
       };
     });
   }, [fullTotal]);
-
-  useEffect(() => {
-    if (!checkoutEnabled) return;
-    const onExit = (event: MouseEvent) => {
-      if (event.clientY <= 0 && lines.length && !sessionStorage.getItem('bomlar-exit-seen')) {
-        sessionStorage.setItem('bomlar-exit-seen', '1');
-        setExitOpen(true);
-      }
-    };
-    const onPop = () => {
-      if (!sessionStorage.getItem('bomlar-back-seen') && lines.length) {
-        sessionStorage.setItem('bomlar-back-seen', '1');
-        setExitOpen(true);
-        history.pushState({ checkout: true }, '', '#checkout');
-      }
-    };
-    history.pushState({ checkout: true }, '', '#checkout');
-    const timer = window.setTimeout(() => window.addEventListener('mouseout', onExit), 500);
-    window.addEventListener('popstate', onPop);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener('mouseout', onExit);
-      window.removeEventListener('popstate', onPop);
-    };
-  }, [lines.length, checkoutEnabled]);
 
   useEffect(() => {
     const previousOrderId = sessionStorage.getItem('bomlar-pix-order-id');
@@ -218,15 +191,7 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
     setLoading(true);
     setMessage('');
     const form = new FormData(event.currentTarget);
-    const items = [
-      ...lines.map(line => ({ slug: line.product.slug, quantity: line.quantity, variant: line.variant })),
-      ...addons.filter(addon => added.includes(addon.slug)).map(addon => ({
-        slug: addon.slug,
-        quantity: 1,
-        variant: addon.variants.find(variant => variant.available !== false)?.value,
-        downsell: exitAccepted && addon.slug === offer?.slug,
-      })),
-    ];
+    const items = lines.map(line => ({ slug: line.product.slug, quantity: line.quantity, variant: line.variant }));
     const requestPayload = {
       checkoutId: getCheckoutId(),
       cliente_nome: String(form.get('name') || ''),
@@ -252,7 +217,7 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
         installmentValue: Number((fullTotal / installments).toFixed(2)),
       } : undefined,
       items,
-      downsellAccepted: exitAccepted,
+      downsellAccepted: false,
     };
 
     try {
@@ -581,20 +546,7 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
         </button>
       )}
 
-      <div className="panel" style={{ marginTop: 13, padding: 16, background: '#101010' }}>
-        <h2 style={{ fontSize: 14, marginBottom: 10 }}>Complete sua compra</h2>
-        <p className="muted" style={{ fontSize: 10, marginTop: 0 }}>Pequenos complementos para deixar tudo no lugar.</p>
-        {addons.length ? addons.map(addon => <label className="addon-row" key={addon.id}>
-          <img src={addon.images[0]} alt={addon.title} />
-          <span><strong>{addon.title}</strong><span>{formatBRL(addonUnitPrice(addon))}</span></span>
-          <input type="checkbox" checked={added.includes(addon.slug)} onChange={event => {
-            setAdded(event.target.checked ? [...new Set([...added, addon.slug])] : added.filter(slug => slug !== addon.slug));
-            if (addon.slug === offer?.slug && !event.target.checked) { setExitAccepted(false); setExitChecked(false); }
-          }} aria-label={`Adicionar ${addon.title}`} />
-        </label>) : <p className="muted" style={{ fontSize: 11 }}>Os complementos elegíveis aparecerão aqui quando disponíveis.</p>}
-        {addons.length === 1 && <p className="muted" style={{ fontSize: 9 }}>Esta amostra contém um complemento real; novas opções dependem da sincronização do catálogo completo.</p>}
-      </div>
-      <p style={{ fontSize: 9, color: '#8b8d93', textAlign: 'center' }}><ShieldCheck size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Seus dados são enviados de forma protegida.</p>
+      <p style={{ fontSize: 9, color: '#8b8d93', textAlign: 'center', marginTop: 14 }}><ShieldCheck size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Seus dados são enviados de forma protegida.</p>
     </form>
 
     <aside><div className="panel">
@@ -603,34 +555,10 @@ export function CheckoutForm({ addons, checkoutEnabled = false }: { addons: Prod
         <span>{line.quantity} × {line.product.title}</span>
         <b>{formatBRL((line.product.price + (line.product.variants.find(variant => variant.value === line.variant)?.priceExtra ?? 0)) * line.quantity)}</b>
       </div>)}
-      {addons.filter(addon => added.includes(addon.slug)).map(addon => <div className="checkout-summary-line" key={addon.id}>
-        <span>1 × {addon.title}{exitAccepted && addon.slug === offer?.slug ? ' · 10% off' : ''}</span>
-        <b>{formatBRL(addonUnitPrice(addon) * (exitAccepted && addon.slug === offer?.slug ? 0.9 : 1))}</b>
-      </div>)}
       <div className="checkout-summary-line"><span>Frete</span><b>{fullTotal >= 99 ? 'Grátis' : 'Calculado pelo CEP'}</b></div>
       <div className="checkout-summary-line" style={{ fontWeight: 700 }}><span>Total</span><b>{formatBRL(fullTotal)}</b></div>
       <p className="muted" style={{ fontSize: 10 }}>Frete grátis em compras a partir de R$ 99.</p>
     </div></aside>
-
-    {exitOpen && <div className="downsell-modal" role="dialog" aria-modal="true" aria-labelledby="downsell-title">
-      <div className="downsell-card">
-        <span className="eyebrow">Uma última condição</span>
-        <h2 id="downsell-title">Leve um complemento com 10% de desconto.</h2>
-        <p className="muted" style={{ fontSize: 12 }}>A oferta aparece uma vez nesta sessão e só será adicionada se você marcar a opção.</p>
-        {offer ? <label className="addon-row">
-          <img src={offer.images[0]} alt={offer.title} />
-          <span><strong>{offer.title}</strong><span><del>{formatBRL(addonUnitPrice(offer))}</del> <b>{formatBRL(addonUnitPrice(offer) * 0.9)}</b></span></span>
-          <input type="checkbox" checked={exitChecked} onChange={event => setExitChecked(event.target.checked)} aria-label="Aceitar complemento com desconto" />
-        </label> : <p className="muted">Nenhum complemento elegível está disponível.</p>}
-        <div className="downsell-actions">
-          <button className="btn-primary" onClick={() => {
-            if (exitChecked && offer) { setAdded([...new Set([...added, offer.slug])]); setExitAccepted(true); }
-            setExitOpen(false);
-          }}>{exitChecked ? 'Adicionar com 10% off' : 'Continuar sem extra'}</button>
-          <button className="option" onClick={() => setExitOpen(false)}>Agora não</button>
-        </div>
-      </div>
-    </div>}
   </div>;
 }
 
