@@ -29,9 +29,17 @@ type CardPayment = {
   status: string;
 };
 
-export function CheckoutForm({ addons = [], checkoutEnabled = false }: { addons?: Product[]; checkoutEnabled?: boolean }) {
+export function CheckoutForm({
+  addons = [],
+  checkoutEnabled = false,
+  initialPayment = 'credit_card',
+}: {
+  addons?: Product[];
+  checkoutEnabled?: boolean;
+  initialPayment?: 'credit_card' | 'pix';
+}) {
   const { lines, total, clear } = useCart();
-  const [payment, setPayment] = useState<'credit_card' | 'pix'>('credit_card');
+  const [payment, setPayment] = useState<'credit_card' | 'pix'>(initialPayment);
   const [cardNumber, setCardNumber] = useState('');
   const [cardHolder, setCardHolder] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -411,121 +419,112 @@ export function CheckoutForm({ addons = [], checkoutEnabled = false }: { addons?
         <Field label="Complemento (opcional)" full><input name="complement" placeholder="Apto, bloco, referência" /></Field>
       </div>
 
-      <h2 style={{ marginTop: 27 }}>Forma de pagamento</h2>
-      <div className="payment-options-grid">
-        <label className={`payment-option-card ${payment === 'credit_card' ? 'active card-active' : ''}`}>
-          <input
-            type="radio"
-            name="payment"
-            checked={payment === 'credit_card'}
-            onChange={() => setPayment('credit_card')}
-          />
-          <div className="payment-card-content">
-            <div className="payment-card-title">
-              <span className="card-tag">CARTÃO</span>
-              <strong>Cartão de Crédito</strong>
+      {payment === 'credit_card' ? (
+        <>
+          <h2 style={{ marginTop: 27 }}>Pagamento com Cartão de Crédito</h2>
+          <div className="payment-option-card active card-active" style={{ cursor: 'default' }}>
+            <div className="payment-card-content">
+              <div className="payment-card-title">
+                <span className="card-tag">CARTÃO</span>
+                <strong>Cartão de Crédito · Compra Protegida</strong>
+              </div>
+              <p>Até 12x de {formatBRL(fullTotal / 12)} sem acréscimo. Liberação imediata e segurança ponta a ponta.</p>
             </div>
-            <p>Até 12x de {formatBRL(fullTotal / 12)} sem acréscimo. Aprovação imediata e compra 100% segura.</p>
           </div>
-        </label>
 
-        <label className={`payment-option-card ${payment === 'pix' ? 'active' : ''}`}>
-          <input
-            type="radio"
-            name="payment"
-            checked={payment === 'pix'}
-            onChange={() => setPayment('pix')}
-          />
-          <div className="payment-card-content">
-            <div className="payment-card-title">
-              <span className="pix-tag">PIX</span>
-              <strong>Pix (Aprovação Imediata)</strong>
-            </div>
-            <p>QR Code dinâmico e código Copia e Cola gerados na hora com o valor exato do seu pedido via IronPay.</p>
-          </div>
-        </label>
-      </div>
-
-      {payment === 'credit_card' && (
-        <div className="credit-card-fields-box">
-          <div className="card-fields-header">
-            <div className="card-fields-title-wrap">
-              <CreditCard size={18} style={{ color: '#3b82f6' }} />
-              <div>
-                <strong>Dados do Cartão de Crédito</strong>
-                <span>Parcelamento em até 12x sem juros ou acréscimo</span>
+          <div className="credit-card-fields-box">
+            <div className="card-fields-header">
+              <div className="card-fields-title-wrap">
+                <CreditCard size={18} style={{ color: '#3b82f6' }} />
+                <div>
+                  <strong>Dados do Cartão de Crédito</strong>
+                  <span>Parcelamento em até 12x sem juros ou acréscimo</span>
+                </div>
+              </div>
+              <div className="card-brands-icons">
+                <span className={`brand-chip ${detectedBrand === 'visa' ? 'active' : ''}`}>VISA</span>
+                <span className={`brand-chip ${detectedBrand === 'mastercard' ? 'active' : ''}`}>MASTERCARD</span>
+                <span className={`brand-chip ${detectedBrand === 'elo' ? 'active' : ''}`}>ELO</span>
+                <span className={`brand-chip ${detectedBrand === 'amex' ? 'active' : ''}`}>AMEX</span>
               </div>
             </div>
-            <div className="card-brands-icons">
-              <span className={`brand-chip ${detectedBrand === 'visa' ? 'active' : ''}`}>VISA</span>
-              <span className={`brand-chip ${detectedBrand === 'mastercard' ? 'active' : ''}`}>MASTERCARD</span>
-              <span className={`brand-chip ${detectedBrand === 'elo' ? 'active' : ''}`}>ELO</span>
-              <span className={`brand-chip ${detectedBrand === 'amex' ? 'active' : ''}`}>AMEX</span>
+
+            <div className="form-grid" style={{ marginTop: 14 }}>
+              <Field label="Número do cartão" full>
+                <input
+                  required={payment === 'credit_card'}
+                  value={cardNumber}
+                  onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                  placeholder="0000 0000 0000 0000"
+                  maxLength={19}
+                  inputMode="numeric"
+                  autoComplete="cc-number"
+                />
+              </Field>
+
+              <Field label="Nome impresso no cartão" full>
+                <input
+                  required={payment === 'credit_card'}
+                  value={cardHolder}
+                  onChange={e => setCardHolder(e.target.value.toUpperCase())}
+                  placeholder="Como está gravado no cartão"
+                  autoComplete="cc-name"
+                />
+              </Field>
+
+              <Field label="Validade">
+                <input
+                  required={payment === 'credit_card'}
+                  value={cardExpiry}
+                  onChange={e => setCardExpiry(formatCardExpiry(e.target.value))}
+                  placeholder="MM/AA"
+                  maxLength={5}
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
+                />
+              </Field>
+
+              <Field label="CVV">
+                <input
+                  required={payment === 'credit_card'}
+                  value={cardCvv}
+                  onChange={e => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="123"
+                  maxLength={4}
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                />
+              </Field>
+
+              <Field label="Parcelamento em até 12x (sem acréscimo)" full>
+                <select
+                  value={installments}
+                  onChange={e => setInstallments(Number(e.target.value))}
+                  className="installments-select"
+                >
+                  {installmentOptions.map(opt => (
+                    <option key={opt.count} value={opt.count}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
             </div>
           </div>
-
-          <div className="form-grid" style={{ marginTop: 14 }}>
-            <Field label="Número do cartão" full>
-              <input
-                required={payment === 'credit_card'}
-                value={cardNumber}
-                onChange={e => setCardNumber(formatCardNumber(e.target.value))}
-                placeholder="0000 0000 0000 0000"
-                maxLength={19}
-                inputMode="numeric"
-                autoComplete="cc-number"
-              />
-            </Field>
-
-            <Field label="Nome impresso no cartão" full>
-              <input
-                required={payment === 'credit_card'}
-                value={cardHolder}
-                onChange={e => setCardHolder(e.target.value.toUpperCase())}
-                placeholder="Como está gravado no cartão"
-                autoComplete="cc-name"
-              />
-            </Field>
-
-            <Field label="Validade">
-              <input
-                required={payment === 'credit_card'}
-                value={cardExpiry}
-                onChange={e => setCardExpiry(formatCardExpiry(e.target.value))}
-                placeholder="MM/AA"
-                maxLength={5}
-                inputMode="numeric"
-                autoComplete="cc-exp"
-              />
-            </Field>
-
-            <Field label="CVV">
-              <input
-                required={payment === 'credit_card'}
-                value={cardCvv}
-                onChange={e => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="123"
-                maxLength={4}
-                inputMode="numeric"
-                autoComplete="cc-csc"
-              />
-            </Field>
-
-            <Field label="Parcelamento em até 12x (sem acréscimo)" full>
-              <select
-                value={installments}
-                onChange={e => setInstallments(Number(e.target.value))}
-                className="installments-select"
-              >
-                {installmentOptions.map(opt => (
-                  <option key={opt.count} value={opt.count}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+        </>
+      ) : (
+        <>
+          <h2 style={{ marginTop: 27 }}>Pagamento via Pix</h2>
+          <div className="payment-option-card active" style={{ cursor: 'default' }}>
+            <div className="payment-card-content">
+              <div className="payment-card-title">
+                <span className="pix-tag">PIX</span>
+                <strong>Pix · Aprovação Imediata</strong>
+              </div>
+              <p>QR Code dinâmico e código Pix Copia e Cola gerados na hora com o valor de {formatBRL(fullTotal)} via IronPay.</p>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {message && <p className={`notice ${messageType === 'success' ? 'success-notice' : 'error-notice'}`} role="status">{message}</p>}

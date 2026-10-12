@@ -456,21 +456,6 @@ export function ProductDetail({
             <img src={product.images[image]} alt={product.title} />
           </div>
         )}
-
-        {/* Barra de Compra Rápida Fixa no Rodapé para Celular */}
-        <div className="mobile-buybar">
-          <div className="mobile-buybar-info">
-            <span className="mobile-buybar-title">{product.title}</span>
-            <b className="mobile-buybar-price">{formatBRL(unitPrice)} no Pix</b>
-          </div>
-          <button
-            className="btn-pix mobile-buybar-btn"
-            disabled={unavailable}
-            onClick={buyWithPix}
-          >
-            {unavailable ? 'Indisponível' : 'Pagar no Pix'}
-          </button>
-        </div>
       </div>
     </main>
   );
