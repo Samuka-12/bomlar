@@ -13,6 +13,21 @@ interface ReviewData {
   highlight: string;
 }
 
+const DEFAULT_LOCATIONS = [
+  'São Paulo, SP',
+  'Belo Horizonte, MG',
+  'Curitiba, PR',
+  'Rio de Janeiro, RJ',
+  'Florianópolis, SC',
+  'Campinas, SP',
+  'Porto Alegre, RS',
+  'Goiânia, GO',
+  'Brasília, DF',
+  'Salvador, BA',
+  'Recife, PE',
+  'Vitória, ES',
+];
+
 const REVIEW_POOL: ReviewData[] = [
   {
     name: 'Mariana Silveira',
@@ -23,7 +38,7 @@ const REVIEW_POOL: ReviewData[] = [
     highlight: 'Recomendo muito',
   },
   {
-    name: 'Carlos Eduardo M.',
+    name: 'Carlos Eduardo Mendes',
     location: 'Belo Horizonte, MG',
     rating: 5,
     date: 'há 3 dias',
@@ -31,34 +46,34 @@ const REVIEW_POOL: ReviewData[] = [
     highlight: 'Excelente qualidade',
   },
   {
-    name: 'Juliana Ferreira',
+    name: 'Juliana Ferreira Rocha',
     location: 'Curitiba, PR',
-    rating: 5,
-    date: 'há 5 dias',
-    comment: 'Confesso que fiquei na dúvida antes de fechar o pedido, mas me surpreendeu positivamente. Firme, muito bem feito e entrega nota 10!',
-    highlight: 'Entrega rápida',
-  },
-  {
-    name: 'Rodrigo Albuquerque',
-    location: 'Rio de Janeiro, RJ',
-    rating: 5,
-    date: 'há 1 semana',
-    comment: 'Produto sensacional, funciona perfeitamente e é muito resistente. Cumpre com maestria tudo o que promete. Valeu cada centavo!',
+    rating: 4,
+    date: 'há 4 dias',
+    comment: 'Gostei muito do produto! Cumpre muito bem o que promete e o material é firme. Apenas a transportadora demorou um dia além do prazo aqui na minha região, mas valeu a espera.',
     highlight: 'Compra verificada',
   },
   {
-    name: 'Fernanda Lima',
-    location: 'Campinas, SP',
+    name: 'Rodrigo Albuquerque Lins',
+    location: 'Rio de Janeiro, RJ',
     rating: 5,
+    date: 'há 5 dias',
+    comment: 'Produto sensacional, funciona perfeitamente e é muito resistente. Cumpre com maestria tudo o que promete. Valeu cada centavo!',
+    highlight: 'Recomendo muito',
+  },
+  {
+    name: 'Fernanda Lima Duarte',
+    location: 'Campinas, SP',
+    rating: 4,
     date: 'há 1 semana',
-    comment: 'Adorei a compra! Veio certinho, entrega antes do prazo e o produto é super útil. Já vou garantir mais um para presentear.',
+    comment: 'Adorei a compra! Veio certinho e o acabamento é de primeira. Achei o manual um pouquinho resumido, mas o uso é super intuitivo no dia a dia.',
     highlight: 'Super prático',
   },
   {
-    name: 'Lucas Fernandes',
+    name: 'Lucas Fernandes Prado',
     location: 'Porto Alegre, RS',
     rating: 5,
-    date: 'há 2 semanas',
+    date: 'há 1 semana',
     comment: 'Muito satisfeito! Material durável, visual moderno e ótimo custo-benefício. A Bom Lar está de parabéns pelo capricho no envio.',
     highlight: 'Ótimo custo-benefício',
   },
@@ -71,50 +86,131 @@ const REVIEW_POOL: ReviewData[] = [
     highlight: 'Design e acabamento',
   },
   {
-    name: 'Rafael Oliveira',
+    name: 'Rafael Oliveira Siqueira',
     location: 'Brasília, DF',
+    rating: 4,
+    date: 'há 2 semanas',
+    comment: 'Perfeito para o que eu precisava. Fácil manuseio e boa durabilidade. A embalagem externa veio com um pequeno amassado na caixa, mas o item intacto e perfeito.',
+    highlight: 'Qualidade aprovada',
+  },
+  {
+    name: 'Tatiane Guimarães Neves',
+    location: 'Ribeirão Preto, SP',
+    rating: 5,
+    date: 'há 2 semanas',
+    comment: 'Fiquei impressionada com o cuidado nos detalhes. Uso todos os dias e facilitou demais a minha rotina em casa. Vale cada centavo!',
+    highlight: 'Recomendo muito',
+  },
+  {
+    name: 'Cláudio Nogueira Ramos',
+    location: 'Goiânia, GO',
+    rating: 4,
+    date: 'há 3 semanas',
+    comment: 'Produto muito resistente e bem construído. Superou outros modelos similares que já comprei antes. Recomendo a loja!',
+    highlight: 'Muito satisfeito',
+  },
+  {
+    name: 'Patrícia Alencar Barros',
+    location: 'Fortaleza, CE',
     rating: 5,
     date: 'há 3 semanas',
-    comment: 'Perfeito para o que eu precisava. Fácil manuseio e qualidade muito acima da média do mercado. Comprem sem medo!',
-    highlight: 'Qualidade aprovada',
+    comment: 'Entrega rápida para o Nordeste e produto maravilhoso. Exatamente como descrito e fotos fiéis. Nota dez!',
+    highlight: 'Entrega rápida',
+  },
+  {
+    name: 'Gustavo Meireles Toledo',
+    location: 'Caxias do Sul, RS',
+    rating: 3,
+    date: 'há 3 semanas',
+    comment: 'O produto é muito bom e o material é excelente, cumpre tudo o que anuncia. Dei 3 estrelas apenas porque a cor é ligeiramente mais clara que na foto, mas a funcionalidade é impecável.',
+    highlight: 'Bom produto',
+  },
+  {
+    name: 'Danielle Brandão Vilela',
+    location: 'Uberlândia, MG',
+    rating: 5,
+    date: 'há 1 mês',
+    comment: 'Simplesmente maravilhoso! Atendimento atencioso e o pacote chegou antes do prazo previsto. Comprarei mais vezes com certeza.',
+    highlight: 'Compra verificada',
+  },
+  {
+    name: 'Rogério Furtado Peixoto',
+    location: 'Santos, SP',
+    rating: 4,
+    date: 'há 1 mês',
+    comment: 'Estrutura sólida e ótimo custo-benefício. Levei alguns minutinhos para pegar o jeito no primeiro uso, mas depois foi só elogios.',
+    highlight: 'Ótima qualidade',
+  },
+  {
+    name: 'Camila Bittencourt Maia',
+    location: 'Campo Grande, MS',
+    rating: 5,
+    date: 'há 1 mês',
+    comment: 'Chegou perfeitamente lacrado e protegido. Funciona como mágica e resolveu o que eu precisava aqui em casa. Recomendo a todos!',
+    highlight: 'Recomendo muito',
+  },
+  {
+    name: 'André Luiz Gusmão',
+    location: 'Joinville, SC',
+    rating: 4,
+    date: 'há 1 mês',
+    comment: 'Muito prático e funcional. A qualidade do acabamento é visível de longe. Vale o investimento.',
+    highlight: 'Compra verificada',
   },
 ];
 
-// Hash determinístico simples para gerar sempre as mesmas avaliações consistentes para cada produto
+// Hash determinístico com algoritmo de embaralhamento Fisher-Yates por produto
 function getDeterministicReviews(seed: string): ReviewData[] {
-  let hash = 0;
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c64e6d;
   for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0;
+    const ch = seed.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
   }
-  const positiveHash = Math.abs(hash);
-  const startIndex = positiveHash % REVIEW_POOL.length;
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  let rng = Math.abs(h1 ^ h2);
 
-  const count = 4;
-  const selected: ReviewData[] = [];
-  for (let i = 0; i < count; i++) {
-    selected.push(REVIEW_POOL[(startIndex + i) % REVIEW_POOL.length]);
+  const pool = [...REVIEW_POOL];
+  for (let i = pool.length - 1; i > 0; i--) {
+    rng = (rng * 1664525 + 1013904223) >>> 0;
+    const j = rng % (i + 1);
+    const temp = pool[i];
+    pool[i] = pool[j];
+    pool[j] = temp;
   }
-  return selected;
+  return pool.slice(0, 4);
 }
 
 export function ProductSideReviews({ product }: { product: Product }) {
   const reviews = useMemo(() => {
     if (product.reviews && product.reviews.length > 0) {
-      return product.reviews.map((r, i) => ({
-        name: r.author || `Cliente Verificado`,
-        location: 'Brasil',
-        rating: r.rating || 5,
-        date: r.date || `há ${i + 2} dias`,
-        comment: r.body,
-        highlight: 'Compra verificada',
-      }));
+      return product.reviews.map((r, i) => {
+        const rating = Math.max(1, Math.min(5, Number(r.rating) || 5));
+        const defaultHighlight =
+          rating === 5 ? 'Recomendo muito' : rating === 4 ? 'Excelente compra' : 'Compra verificada';
+        return {
+          name: r.author || `Cliente Verificado`,
+          location: r.location || DEFAULT_LOCATIONS[i % DEFAULT_LOCATIONS.length],
+          rating,
+          date: r.date || `há ${i + 2} dias`,
+          comment: r.body,
+          highlight: r.highlight || defaultHighlight,
+        };
+      });
     }
     return getDeterministicReviews(product.slug || product.id || product.title);
   }, [product.reviews, product.slug, product.id, product.title]);
 
   const reviewCount = product.reviewCount > 0 ? product.reviewCount : 48;
-  const ratingScore = product.rating ? product.rating.toFixed(1) : '4.9';
+  const ratingScore = useMemo(() => {
+    if (product.reviews && product.reviews.length > 0) {
+      const sum = product.reviews.reduce((acc, r) => acc + Math.max(1, Math.min(5, Number(r.rating) || 5)), 0);
+      return (sum / product.reviews.length).toFixed(1);
+    }
+    return product.rating ? product.rating.toFixed(1) : '4.8';
+  }, [product.reviews, product.rating]);
 
   return (
     <div className="product-side-reviews" aria-label="Avaliações do produto">
@@ -126,7 +222,7 @@ export function ProductSideReviews({ product }: { product: Product }) {
             <span className="side-reviews-count">({reviewCount} avaliações)</span>
           </div>
           <span className="side-reviews-pill">
-            <ThumbsUp size={11} /> 98% aprovado
+            <ThumbsUp size={11} /> 97% aprovado
           </span>
         </div>
         <h3 className="side-reviews-title">Avaliações de Clientes</h3>
@@ -158,8 +254,13 @@ export function ProductSideReviews({ product }: { product: Product }) {
 
             <div className="side-review-rating-row">
               <span className="stars-gold" aria-label={`${rev.rating} de 5 estrelas`}>
-                {'★'.repeat(rev.rating)}
+                {'★'.repeat(Math.max(1, Math.min(5, rev.rating)))}
               </span>
+              {rev.rating < 5 && (
+                <span className="stars-empty" aria-hidden="true">
+                  {'★'.repeat(Math.max(0, 5 - rev.rating))}
+                </span>
+              )}
               {rev.highlight && (
                 <span className="side-review-tag">{rev.highlight}</span>
               )}

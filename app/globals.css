@@ -1473,6 +1473,12 @@ main {
   font-size: 13px;
 }
 
+.stars-empty {
+  color: #4b5563;
+  letter-spacing: 2px;
+  font-size: 13px;
+}
+
 .side-reviews-score {
   font-size: 15px;
   font-weight: 700;

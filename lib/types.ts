@@ -1,5 +1,12 @@
 export type ProductVariant = { name: string; value: string; priceExtra: number; available?: boolean | null };
-export type ProductReview = { author: string; body: string; rating: number; date?: string | null };
+export type ProductReview = {
+  author: string;
+  body: string;
+  rating: number;
+  date?: string | null;
+  location?: string | null;
+  highlight?: string | null;
+};
 export type Product = {
   id: string;
   title: string;

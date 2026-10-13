@@ -30,38 +30,56 @@
     ],
     "stock": null,
     "available": true,
-    "rating": 4.9,
+    "rating": 4.8,
     "reviewCount": 267,
     "reviews": [
       {
-        "author": "Mariana Silveira",
+        "author": "Marcelo Antunes Prado",
+        "location": "Ribeirão Preto, SP",
         "rating": 5,
         "date": "há 2 dias",
-        "body": "Sofria com torcicolo frequente e acordava cansada todos os dias. Desde a primeira noite com o CerviMax Pro senti um alívio enorme! O encaixe borboleta apoia o pescoço sem afundar demais e alinha a coluna perfeitamente. Chegou super rápido e muito bem embalado!"
+        "body": "Sofria com torcicolo frequente e acordava com sensação de peso no pescoço. O encaixe do formato borboleta apoia a cervical sem afundar demais. Desde as primeiras noites senti um alívio enorme!",
+        "highlight": "Recomendo muito"
       },
       {
-        "author": "Carlos Eduardo Mendes",
-        "rating": 5,
+        "author": "Tatiane Duarte Guimarães",
+        "location": "Florianópolis, SC",
+        "rating": 4,
         "date": "há 4 dias",
-        "body": "Comprei o kit com 2 unidades para mim e minha esposa e valeu cada centavo. Durmo a maior parte da noite de lado e a curvatura é na medida certa para não prensar o ombro. Espuma viscoelástica de altíssima qualidade que não deforma."
+        "body": "O travesseiro é de muita qualidade e a espuma viscoelástica realmente não deforma. Levei uns dois dias para acostumar com as curvas anatômicas porque sempre usei travesseiro plano, mas depois da adaptação o sono melhorou 100%. Vale a pena!",
+        "highlight": "Excelente qualidade"
       },
       {
-        "author": "Juliana Ferreira Rocha",
+        "author": "Cláudio Henrique Nogueira",
+        "location": "Belo Horizonte, MG",
         "rating": 5,
         "date": "há 1 semana",
-        "body": "Excelente travesseiro! No primeiro dia achei o formato diferente dos comuns, mas já no segundo não queria saber de outro. A capa é fresca, lavável e de toque super agradável. Recomendo muito para quem tem dor na cervical."
+        "body": "Comprei o kit com 2 para mim e minha esposa. Durmo a maior parte da noite de lado e a altura maior preenche o vão do ombro com perfeição. Acabou aquela dor chata ao acordar.",
+        "highlight": "Recomendo muito"
       },
       {
-        "author": "Rodrigo Albuquerque",
-        "rating": 5,
+        "author": "Vanessa Cristina Lins",
+        "location": "Curitiba, PR",
+        "rating": 4,
         "date": "há 1 semana",
-        "body": "Melhor investimento que fiz no meu sono este ano. A densidade da espuma é impecável, nem dura nem mole demais. Acabaram as dores matinais e a sensação de rigidez nos ombros. Entrega nota 10 da Bom Lar!"
+        "body": "Densidade perfeita da espuma de memória, firme na medida certa para sustentar a cabeça. A capa respirável é fresca e bem acabada. A entrega demorou um dia a mais pelos Correios, mas o travesseiro é maravilhoso.",
+        "highlight": "Compra verificada"
       },
       {
-        "author": "Beatriz Vasconcelos",
-        "rating": 5,
+        "author": "Rogério Furtado Barbosa",
+        "location": "Goiânia, GO",
+        "rating": 3,
         "date": "há 2 semanas",
-        "body": "Sensacional! Material de primeira linha, acabamento muito caprichado e suporte anatômico real. Já havia testado outros ortopédicos que eram desconfortáveis, mas esse formato borboleta realmente abraça a cervical. Aprovadíssimo!"
+        "body": "O travesseiro em si é fantástico, muito confortável e acabou com meu desconforto no pescoço. Dei 3 estrelas apenas porque a fronha padrão da minha cama ficou bem justa nele devido às abas laterais, mas o formato ortopédico cumpre exatamente o que promete.",
+        "highlight": "Bom produto"
+      },
+      {
+        "author": "Sabrina Neves Peixoto",
+        "location": "Vitória, ES",
+        "rating": 5,
+        "date": "há 3 semanas",
+        "body": "Excelente acabamento e toque macio. A postura ao dormir fica muito mais alinhada e não fico mais acordando no meio da noite para ajeitar o travesseiro. Investimento certo na saúde da coluna.",
+        "highlight": "Super prático"
       }
     ],
     "variants": [
