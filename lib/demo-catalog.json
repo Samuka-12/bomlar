@@ -1,5 +1,85 @@
 [
   {
+    "id": "10709556134053",
+    "title": "Travesseiro Cervical Borboleta CerviMax Pro Ortopédico",
+    "slug": "travesseiro-cervical-borboleta-cervimax-pro",
+    "description": "O Travesseiro Cervical Borboleta CerviMax Pro foi desenvolvido com design anatômico avançado para proporcionar o alinhamento ideal da cabeça, pescoço e coluna durante o repouso. Diferente dos travesseiros planos convencionais que sobrecarregam a musculatura cervical, sua estrutura ergonômica com dupla altura distribui o peso de forma equilibrada, aliviando tensões e prevenindo torcicolos e dores matinais.\n\n### BENEFÍCIOS\n• Formato borboleta ergonômico que acomoda o pescoço e alinha as vértebras cervicais\n• Dupla altura adaptável: suporte perfeito tanto para quem dorme de lado quanto de costas ou bruços\n• Espuma viscoelástica de memória (Memory Foam) de alta densidade que molda suavemente sem afundar em excesso\n• Alívio de pontos de pressão nos ombros e na musculatura da nuca\n• Respiração livre e desobstruída para um sono profundo e contínuo\n\n### ESPECIFICAÇÕES\n• Dimensões: 50 cm x 30 cm x 10/6 cm (dupla altura)\n• Núcleo: Espuma Viscoelástica com Memória de Alta Resiliência\n• Capa: Tecido respirável suave com fechamento por zíper invisível\n• Firmeza: Média anatômica confortável\n• Fronha compatível: Tamanho padrão 60 cm x 40 cm\n• Indicação: Todas as posições de dormir\n\n### CUIDADOS\n• Capa externa removível e lavável em máquina no ciclo suave\n• Núcleo de espuma viscoelástica: não lavar em água nem expor ao sol direto; manter em local arejado\n\n### CONTEÚDO DA EMBALAGEM\n• 1 Travesseiro Cervical Borboleta CerviMax Pro\n• 1 Capa Protetora Respirável Lavável",
+    "price": 149,
+    "compareAt": 279,
+    "category": "Travesseiro",
+    "tags": [
+      "quarto",
+      "travesseiro",
+      "ortopedico",
+      "cervical",
+      "espuma-viscoelastica",
+      "mais-vendido",
+      "saude-sono"
+    ],
+    "images": [
+      "/products/travesseiro-cervical-borboleta-cervimax-pro.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-02.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-03.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-04.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-05.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-06.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-07.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-08.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-09.webp",
+      "/products/travesseiro-cervical-borboleta-cervimax-pro-10.webp"
+    ],
+    "stock": null,
+    "available": true,
+    "rating": 4.9,
+    "reviewCount": 267,
+    "reviews": [
+      {
+        "author": "Mariana Silveira",
+        "rating": 5,
+        "date": "há 2 dias",
+        "body": "Sofria com torcicolo frequente e acordava cansada todos os dias. Desde a primeira noite com o CerviMax Pro senti um alívio enorme! O encaixe borboleta apoia o pescoço sem afundar demais e alinha a coluna perfeitamente. Chegou super rápido e muito bem embalado!"
+      },
+      {
+        "author": "Carlos Eduardo Mendes",
+        "rating": 5,
+        "date": "há 4 dias",
+        "body": "Comprei o kit com 2 unidades para mim e minha esposa e valeu cada centavo. Durmo a maior parte da noite de lado e a curvatura é na medida certa para não prensar o ombro. Espuma viscoelástica de altíssima qualidade que não deforma."
+      },
+      {
+        "author": "Juliana Ferreira Rocha",
+        "rating": 5,
+        "date": "há 1 semana",
+        "body": "Excelente travesseiro! No primeiro dia achei o formato diferente dos comuns, mas já no segundo não queria saber de outro. A capa é fresca, lavável e de toque super agradável. Recomendo muito para quem tem dor na cervical."
+      },
+      {
+        "author": "Rodrigo Albuquerque",
+        "rating": 5,
+        "date": "há 1 semana",
+        "body": "Melhor investimento que fiz no meu sono este ano. A densidade da espuma é impecável, nem dura nem mole demais. Acabaram as dores matinais e a sensação de rigidez nos ombros. Entrega nota 10 da Bom Lar!"
+      },
+      {
+        "author": "Beatriz Vasconcelos",
+        "rating": 5,
+        "date": "há 2 semanas",
+        "body": "Sensacional! Material de primeira linha, acabamento muito caprichado e suporte anatômico real. Já havia testado outros ortopédicos que eram desconfortáveis, mas esse formato borboleta realmente abraça a cervical. Aprovadíssimo!"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Quantidade",
+        "value": "1 Unidade",
+        "priceExtra": 0,
+        "available": true
+      },
+      {
+        "name": "Quantidade",
+        "value": "Kit com 2 Unidades (Mais Vendido)",
+        "priceExtra": 50,
+        "available": true
+      }
+    ]
+  },
+  {
     "id": "8591316844719",
     "title": "3 em 1 - Compressor de Ar Portátil Multifuncional",
     "slug": "3-em-1-compressor-de-ar-portatil-multifuncional",
