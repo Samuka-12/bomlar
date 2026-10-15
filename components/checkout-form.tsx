@@ -130,7 +130,7 @@ export function CheckoutForm({
         setPixPayment(previous => previous?.orderId === data.orderId ? { ...previous, ...data } : previous);
         if (data.status === 'pago' && !purchaseTracked.current) {
           purchaseTracked.current = true;
-          trackMeta('Purchase', { value: data.amountCents / 100, currency: 'BRL' });
+          trackMeta('Purchase', { value: data.amountCents / 100, currency: 'BRL', order_id: data.orderId });
           clear();
           sessionStorage.removeItem('bomlar-checkout-id');
         }
@@ -260,7 +260,9 @@ export function CheckoutForm({
         };
         setCardPayment(createdCard);
         purchaseTracked.current = true;
-        trackMeta('Purchase', { value: fullTotal, currency: 'BRL' });
+        if (data.status === 'pago' && data.orderId) {
+          trackMeta('Purchase', { value: fullTotal, currency: 'BRL', order_id: String(data.orderId) });
+        }
         clear();
         sessionStorage.removeItem('bomlar-checkout-id');
         setMessage(data.message || 'Pagamento no cartão aprovado!');
@@ -280,7 +282,7 @@ export function CheckoutForm({
       sessionStorage.setItem('bomlar-pix-order-id', created.orderId);
       if (created.status === 'pago') {
         purchaseTracked.current = true;
-        trackMeta('Purchase', { value: created.amountCents / 100, currency: 'BRL' });
+        trackMeta('Purchase', { value: created.amountCents / 100, currency: 'BRL', order_id: created.orderId });
         clear();
         sessionStorage.removeItem('bomlar-checkout-id');
       }

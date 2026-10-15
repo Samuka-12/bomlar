@@ -6,7 +6,7 @@ import Script from 'next/script';
 
 const DEFAULT_META_PIXEL_ID = '1409699280750716';
 
-type MetaEvent = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase';
+type MetaEvent = 'PageView' | 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase';
 
 declare global {
   interface Window {
@@ -16,8 +16,27 @@ declare global {
 }
 
 export function trackMeta(event: MetaEvent, params?: Record<string, unknown>) {
-  if (typeof window === 'undefined' || !window.fbq) return;
-  window.fbq('track', event, params ?? {});
+  if (typeof window === 'undefined') return;
+
+  const { order_id: orderId, ...eventParams } = params ?? {};
+  const eventId = event === 'Purchase' && typeof orderId === 'string'
+    ? `purchase_${orderId}`
+    : globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+  window.fbq?.('track', event, eventParams, { eventID: eventId });
+
+  void fetch('/api/meta-event', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'same-origin',
+    keepalive: true,
+    body: JSON.stringify({
+      eventName: event,
+      eventId,
+      orderId: typeof orderId === 'string' ? orderId : undefined,
+      parameters: eventParams,
+    }),
+  }).catch(() => undefined);
 }
 
 export function MetaPixel() {
@@ -28,7 +47,7 @@ export function MetaPixel() {
 
   useEffect(() => {
     if (!isReady || !window.fbq) return;
-    window.fbq('track', 'PageView');
+    trackMeta('PageView');
   }, [isReady, pathname]);
 
   if (!pixelId) return null;
